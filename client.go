@@ -380,6 +380,16 @@ func (c *Client) Copy(oldpath, newpath string, overwrite bool) error {
 	return c.copymove("COPY", oldpath, newpath, overwrite)
 }
 
+// Lock locks a file
+func (c *Client) Lock(path string, token string) error {
+	return c.lock(path, token)
+}
+
+// Unlock unlocks a file
+func (c *Client) Unlock(path string, token string) error {
+	return c.unlock(path, token)
+}
+
 // Read reads the contents of a remote file
 func (c *Client) Read(path string) ([]byte, error) {
 	var stream io.ReadCloser
