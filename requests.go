@@ -214,8 +214,10 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 	return NewPathError(method, oldpath, s)
 }
 
-func (c *Client) put(path string, stream io.Reader) (status int, err error) {
-	rs, err := c.req("PUT", path, stream, nil)
+func (c *Client) put(path string, stream io.Reader, locktoken string) (status int, err error) {
+	rs, err := c.req("PUT", path, stream, func(rq *http.Request) {
+		rq.Header.Add("Lock-Token", "<"+locktoken+">")
+	})
 	if err != nil {
 		return
 	}
