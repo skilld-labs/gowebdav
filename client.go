@@ -3,6 +3,7 @@ package gowebdav
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -157,6 +158,10 @@ func (p *propstat) Modified() time.Time {
 		return t
 	}
 	return time.Unix(0, 0)
+}
+
+func (p *propstat) Lock() string {
+	return p.Props.GetString(xml.Name{Space: "DAV:", Local: "lockdiscovery"})
 }
 
 func (p *propstat) StatusCode() int {
@@ -380,9 +385,30 @@ func (c *Client) Copy(oldpath, newpath string, overwrite bool) error {
 	return c.copymove("COPY", oldpath, newpath, overwrite)
 }
 
+// GetLock gets a lock
+func (c *Client) GetLock(path string) (string, error) {
+	fi, err := c.Stat(path)
+	if err != nil {
+		return "", err
+	}
+
+	f, ok := fi.(File)
+	if !ok {
+		// This won't happen unless implementation is changed
+		return "", errors.New("Stat did not return a File")
+	}
+
+	return f.Lock(), nil
+}
+
 // Lock locks a file
 func (c *Client) Lock(path string, token string) error {
-	return c.lock(path, token)
+	return c.lock(path, token, false)
+}
+
+// RefreshLock refreshes a lock
+func (c *Client) RefreshLock(path string, token string) error {
+	return c.lock(path, token, true)
 }
 
 // Unlock unlocks a file
