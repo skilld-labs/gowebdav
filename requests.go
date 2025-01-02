@@ -105,9 +105,9 @@ func (c *Client) propfind(path string, self bool, body string, resp interface{},
 	return parseXML(rs.Body, resp, parse)
 }
 
-func (c *Client) lock(path string, token string) error {
+func (c *Client) lock(path string, token string, refresh bool) error {
 	var body io.Reader
-	if token != "" {
+	if !refresh {
 		b := strings.Builder{}
 
 		// build the lockinfo xml
@@ -131,6 +131,9 @@ func (c *Client) lock(path string, token string) error {
 		rq.Header.Add("Accept", "application/xml,text/xml")
 		rq.Header.Add("Accept-Charset", "utf-8")
 		rq.Header.Add("Accept-Encoding", "")
+		if refresh {
+			rq.Header.Add("If", "("+token+")")
+		}
 	})
 	if err != nil {
 		return err
@@ -214,8 +217,10 @@ func (c *Client) copymove(method string, oldpath string, newpath string, overwri
 	return NewPathError(method, oldpath, s)
 }
 
-func (c *Client) put(path string, stream io.Reader) (status int, err error) {
-	rs, err := c.req("PUT", path, stream, nil)
+func (c *Client) put(path string, stream io.Reader, locktoken string) (status int, err error) {
+	rs, err := c.req("PUT", path, stream, func(rq *http.Request) {
+		rq.Header.Add("Lock-Token", "<"+locktoken+">")
+	})
 	if err != nil {
 		return
 	}

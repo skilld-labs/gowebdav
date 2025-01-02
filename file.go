@@ -98,6 +98,11 @@ func (f File) Sys() interface{} {
 	return f.propstat.Props
 }
 
+// Lock returns the files lock
+func (f File) Lock() string {
+	return f.propstat.Lock()
+}
+
 func (f File) StatusCode() int {
 	return f.propstat.StatusCode()
 }
