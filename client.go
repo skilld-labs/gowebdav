@@ -206,6 +206,7 @@ func (c *Client) ReadDirWithProps(path string, props []string) ([]FileInfo, erro
 	parse := func(resp interface{}) error {
 		r := resp.(*response)
 
+		fmt.Printf("ZZZZZZZZ %v", r)
 		if skipSelf {
 			skipSelf = false
 			if p := getPropstat(r, []string{"200", "425"}); p != nil && p.Type() == "collection" {
